@@ -77,17 +77,17 @@ end
 %膜的初态按照腔的本征态展开
 % surfShape(shape,r,theta);% 取消注释看和初态的差别
 %%
-for nn=0:order_max
-    mat_tmp=reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
-    for ii=1:order_max
-        [~,idx]=max(abs(mat_tmp(:,ii)));
-        mat_tmp(:,ii)=-mat_tmp(:,ii)*sign(mat_tmp(idx,ii));
-    end
-    [i, j] = linear_sum_assignment(mat_tmp');
-    % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
-    mat_tmp=-mat_tmp(:,i);
-    transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
-end
+% for nn=0:order_max
+%     mat_tmp=reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
+%     for ii=1:order_max
+%         [~,idx]=max(abs(mat_tmp(:,ii)));
+%         mat_tmp(:,ii)=-mat_tmp(:,ii)*sign(mat_tmp(idx,ii));
+%     end
+%     [i, j] = linear_sum_assignment(mat_tmp');
+%     % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
+%     mat_tmp=-mat_tmp(:,i);
+%     transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
+% end
 %%
 % 角标应为n m k
 w_cn=zeros(size(w_cm));
