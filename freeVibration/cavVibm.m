@@ -16,21 +16,22 @@ z(1,1,:)=linspace(0,L,z_num);
 % z0(floor(r_num*a0/a)+1,1)=1; % 敲击位置，方程可以后续再改
 %%
 % 锥形初始条件
-% h0=1;
-%
-% ab=sqrt(r.^2+a0^2-2*r*a0*cos(theta));
-% cosoba=(r.^2+ab.^2-a0^2)/2./r./ab;
-% coscbo=-cosoba;
-% cb=(2*coscbo.*r+sqrt((2*coscbo.*r).^2-4*(r.^2-1^2)))/2;
-% z0=h0*cb./(cb+ab);
-% z0(isnan(z0))=h0*1/(1+a0);
+h0=1;
+
+ab=sqrt(r.^2+a0^2-2*r*a0*cos(theta));
+cosoba=(r.^2+ab.^2-a0^2)/2./r./ab;
+coscbo=-cosoba;
+cb=(2*coscbo.*r+sqrt((2*coscbo.*r).^2-4*(r.^2-1^2)))/2;
+z0=h0*cb./(cb+ab);
+z0(isnan(z0))=h0*1/(1+a0);
+z0=repmat(z0,1,1,z_num);
 %%
 w_nm= zeros(size(Omega));
 shape_c=cell(order_max+1,order_max,order_max);% 腔的本征态
 % r1=r-a/2/r_num;r2=r+a/2/r_num;
 % ds=pi*(r2.^2-r1.^2)/theta_num;
-ds=pi*2*r/r_num/theta_num;% 和上面两行等价
-ds=repmat(ds,1,theta_num);
+dv=pi*2*r/r_num/theta_num*L/z_num;% 和上面两行等价
+dv=repmat(dv,1,theta_num);
 % w_cm=zeros(order_max+1,order_max);
 for kk=1:order_max% z方向量子数
     for nn=0:order_max
@@ -51,7 +52,7 @@ for kk=1:order_max% z方向量子数
             end
             % 先是r,后是theta
             shape_c{nn+1,mm,kk}=z1;
-            %         w_cm(nn+1,mm)=sum(sum(z0.*z1.*ds));
+            w_cm(nn+1,mm)=sum(sum(sum(z0.*z1.*dv)));
         end
     end
 end
