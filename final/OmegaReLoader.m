@@ -1,5 +1,5 @@
 fileList=dir('./OmegaRe/*.mat');
-order_max=20;% 需要修改%%%%%%%%%%%%%%%
+order_max=10;% 需要修改%%%%%%%%%%%%%%%
 Omega=zeros(length(fileList),order_max);
 for ni =1:length(fileList)
     load(strcat(fileList(ni).folder,'/', fileList(ni).name));
