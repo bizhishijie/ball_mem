@@ -3,7 +3,7 @@
 a=0.047; %半径
 L = 0.1;% 鼓的深度
 gamma = 1.4; % 空气绝热系数
-% T=20; % 张力19.9
+T=19; % 张力19.9
 rho = 1.184;% 空气密度
 ca = 345;% 空气中声速
 sigma = 0.120;% 气球面密度
@@ -17,5 +17,5 @@ load('rootBesselDiff.mat')
 %%
 parfor n=0:20
     disp(n)
-    OmegaResonance(n,20, cs_ca,L_a, sigma_a_rho,rootBessel,rootBesselDiff);
+    OmegaResonanceNew(n,20, cs_ca,L_a, sigma_a_rho,rootBessel,rootBesselDiff);
 end

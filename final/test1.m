@@ -29,7 +29,7 @@ OmegaRe=OmegaRe*cs/a;
 % 对的波速大约是27
 A=zeros(size(y));
 A(ceil(OmegaRe))=1;
-% hold on 
+hold on 
 plot(A)
 
 xlim([0 1000])
