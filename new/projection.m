@@ -1,102 +1,96 @@
-%%
+load("OmegaRe.mat");
+cs_ca=0.3;sigma_a_rho=3.3;L_a=1.5; % 论文中B鼓
+order_max=10;
+
 % 定义常数 国际单位
-a = 0.2;% 鼓的半径
-ca = 340;% 空气中声速
-cs = 1;% 橡胶中波的传播速度
-L = 0.3;% 鼓的深度
+a = 1;% 鼓的半径
+ca = 346;% 空气中声速
+cs = cs_ca*ca;% 橡胶中波的传播速度
+L = L_a*a;% 鼓的深度
 gamma = 1.4; % 空气绝热系数
-rho = 1.5e3;%橡胶密度
-d = 1e-4; % 气球厚度
-sigma = rho*d;% 气球面密度
+rho = 1.184;% 空气密度
+% d = 3e-4; % 气球厚度
+sigma = sigma_a_rho*a*rho;% 气球面密度
 pa = 1e5;% 大气压强
-r0=0.1;% 敲击位置
-% 修改参数需要重新运行 OmegaReSaver
+a0=0.2*a; %敲击位置，(theta=0)
+
+Omega=Omega(1:order_max+1,1:order_max);% 一致化
+%%
 load('rootBessel.mat')
 load('rootBesselDiff.mat')
-load('OmegaRe.mat')
-% 以上三个文件可能部分需要重写
-orderN=12;
-orderMax=30;% ijm的阶数
-%需要自行检验和OmegaRe中的阶数是否相等
-% 获得鼓的本征频率
-%%
-% 计算正交基
-syms r z theta
-% syms r_a z_L
-r_a=r/a;
-z_L=z/L;%归一化
-rootBessel=rootBessel(1:orderN+1,1:orderMax);
-rootBesselDiff=rootBesselDiff(1:orderN+1,1:orderMax);
-Omega=Omega(1:orderN+1,1:orderMax)*ca/a;
-n = (0:orderN)';m = 1:orderMax;
-n = repmat(n,1,orderMax);
-m = repmat(m, orderN);
-phi_n_m=sqrt(2)*besselj(n, rootBessel*r_a)./besselj(n+1, rootBessel);
-% phi部分完毕
 
-epsilon=L/a*sqrt(abs((Omega*a/ca).^2-rootBesselDiff.^2));
-zeta=(Omega*a/ca<rootBesselDiff).*(cosh(epsilon-epsilon*z_L)./epsilon)+...
-    (Omega*a/ca==rootBesselDiff)+...
-    (Omega*a/ca>rootBesselDiff).*(cos(epsilon*z_L)+tan(epsilon).*sin(epsilon*z_L));
-% zeta部分完毕
-w=phi_n_m.*zeta.*cos(n*theta);
-% 得到正交基
-% 将其归一，r在=0~1，z在=0~1
-heft=eval(int(int(int(w.^2*r*pa,r,[0,a]),z,[0,L]),theta ,[0,2*pi]));
-w=w./heft;
+r_num=100;
+theta_num=100;% 切分的数目
+r=linspace(0,a,r_num)';% 注意有转置，列矢*行矢比较方便 r(0)对应中间
+theta=linspace(0,2*pi,theta_num);
+z0=zeros(r_num,theta_num);
+z0(floor(r_num*a0/a)+1,1)=1; % 敲击位置，方程可以后续再改
 
-%%
-% 根据初态计算分量
-d1=sqrt(r0^2+r^2+2*r*r0*cos(theta));
-d2=a-r;
-p_n_m_k=int(int(int(w*d1/(d1+d2),r,[0,a]),z,[0,L]),theta ,[0,2*pi]) ;
-pa_n_m_k=eval(p_n_m_k);
-%%
-syms t
-syms r z theta
-
-n = (0:orderN)';m = 1:orderMax;
-n = repmat(n,1,orderMax);
-m = repmat(m, orderN);
-phi_n_m=sqrt(2)*besselj(n, rootBessel*r_a)./besselj(n+1, rootBessel);
-% phi部分完毕
-epsilon=L/a*sqrt(abs((Omega*a/ca).^2-rootBesselDiff.^2));
-zeta=(Omega*a/ca<rootBesselDiff).*(cosh(epsilon-epsilon*z_L)./epsilon)+...
-    (Omega*a/ca==rootBesselDiff)+...
-    (Omega*a/ca>rootBesselDiff).*(cos(epsilon*z_L)+tan(epsilon).*sin(epsilon*z_L));
-% zeta部分完毕
-p=pa_n_m_k.*phi_n_m.*zeta.*cos(n*theta).*sin(Omega*t);
-w_t2=-diff(p,z)/rho/L;
-w_t2=subs(w_t2,z,0);
-w=int(int(w_t2,t),t);
-w_sum=sum(sum(w));
-% save('main.mat')
-%%
-% 可视化
-rSize=100;thetaSize=30;
-r_loop=linspace(0,a,rSize);
-theta_loop=linspace(0,2*pi,thetaSize);
-r_loop_1=repmat(r_loop,thetaSize,1);
-theta_loop_1=repmat(theta_loop',1,rSize);
-
-z=zeros(rSize,thetaSize);
-t0=1;t_diff=1e-4;t1=1.1;
-for time=t0:t_diff:t1
-    w_temp=subs(w_sum,t,time);
-    for ii=1:rSize
-        temp=subs(w_temp,r,r_loop(ii));
-        for jj=1:thetaSize
-            %         z(ii,jj)=subs(temp,theta,theta_loop(jj));
-            z(ii,jj)=temp;
+factor_mem= zeros(size(Omega));% 膜在膜的本征态上的展开系数的矩阵
+shape_mem=cell(order_max+1,order_max);% 记录本征态的形状的cell
+for nn=0:order_max
+    for mm=1:order_max
+        if ~isnan(Omega(nn+1,mm))
+            z1=sqrt(2)*besselj(nn,rootBessel(nn+1,mm)*r/a)/besselj(nn+1,rootBessel(nn+1,mm))*...
+                cos(nn*theta);% 先是r,后是theta  z1(end,1)约为0
+            shape_mem{nn+1,mm}=z1;
+            %             factor_mem(nn+1,mm)=sum(sum(z0.*z1))*a/r_num*2*pi/theta_num;% 后面的系数可能不对
+            %         之后这里可以修改后面的微元的面积使得其符合数学
+            factor_mem(nn+1,mm)=sum(sum(z0.*z1*2.*r*a/r_num*theta_num));% 用了平方差公式，需演算
         end
     end
+end
+factor_mem(factor_mem<1e-5)=0;% 振幅太小的不必计算，这行尽量不要删去，数字太小的话计算有误差
+% factor_mem(nn,mm)表示膜在膜的本征态上的展开系数
+%%
+load("trans.mat"); % load变换矩阵
+factor_cav=zeros(size(factor_mem));
+for ni=1:order_max+1
+    factor_cav(ni,:)=factor_mem(ni,:)*trans{ni};
+end% 获得了在腔中的展开系数
 
-    surf(r_loop_1.*cos(theta_loop_1),r_loop_1.*sin(theta_loop_1),z')
-    title(time);
-    %     axis([-a,a,-a,a,-5e-7,5e-5]);
+load('Ktrans.mat');
+factor_mem_new=zeros(size(factor_mem));
+% Ktrans(order,:,:)表示第ii阶的K矩阵
+for ni=0:order_max
+    K=Ktrans{ni+1};
+    for mi=1:order_max
+        K_tmp=reshape(K(mi,:,:),order_max,order_max);
+        factor_mem_new=factor_mem_new+(K_tmp^-1*factor_cav')';
+        % 数字算的很大，达到了几十的量级，怀疑
+    end
+end
+factor_mem_new=factor_mem_new/order_max^2;
+%%
+% 画频谱
+% figure
+fn=1000; % 横轴划分的个数
+x=linspace(0,10*cs/a,fn);
+y=zeros(1,fn);
+for nn=0:order_max
+    for mm=1:order_max
+        if ~isnan(factor_cav(nn+1,mm))% 我不清楚应该是哪个系数
+            y(floor(Omega(nn+1,mm)/(10/fn)))=abs(factor_cav(nn+1,mm));
+        end
+    end
+end
+plot(x,y(1:fn))% 需要检查y的长度再作图
+%%
+% 画空间形状，取消下面注释可以保存，之后使用createGIF可以画动图
+for t=0:0.001:0.1
+    shape=zeros(r_num,theta_num);
+    for nn=0:order_max
+        for mm=1:order_max
+            if ~isnan(factor_mem_new(nn+1,mm))
+                shape=shape+shape_mem{nn+1,mm}*factor_mem_new(nn+1,mm)*cos(rootBessel(nn+1,mm)*cs/a*t);
+            end
+        end
+    end
+    surf(r*cos(theta),r*sin(theta),shape)
     view(-30,70);  % 设置视点位置
+    axis([-1,1,-1,1,-70,70])
     drawnow
-
-    saveas(gcf,['./pic1/' num2str((time-t0)/t_diff) '.jpg'])
-    disp(time)
+    %     saveas(gcf,['./pic/' num2str(t) '.jpg'])
+    disp(t)
+    pause(0.1)
 end
