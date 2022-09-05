@@ -2,6 +2,7 @@ load("OmegaRe.mat"); % 计算得到的OmegaRe
 load('transMat.mat'); % a^k_ni
 load('rootBessel.mat');
 load('rootBesselDiff.mat');
+load('transMat.mat');
 %%
 a=0.047; %半径
 L = 0.1;% 鼓的深度
@@ -44,12 +45,14 @@ z0(isnan(z0))=h0*1/(1+a0);
 % surfShape(z0,r,theta);
 %%
 w_nm= zeros(size(Omega));% 膜在膜的本征态上的展开系数的矩阵
-shape_c=cell(order_max+1,order_max);% 记录膜在腔的本征态下的形状的cell
 % r1=r-a/2/r_num;r2=r+a/2/r_num;
 % ds=pi*(r2.^2-r1.^2)/theta_num;
 ds=pi*2*r/r_num/theta_num;% 和上面两行等价
 ds=repmat(ds,1,theta_num);
 w_cm=zeros(order_max+1,order_max);
+
+% 计算腔的本征函数
+shape_c=cell(order_max+1,order_max);
 for nn=0:order_max
     for mm=1:order_max
         if nn==0 && mm==1
@@ -68,13 +71,16 @@ for nn=0:order_max
         w_cm(nn+1,mm)=sum(sum(z0.*z1.*ds));
     end
 end
-shape_m=cell(1,order_max);
-for mm=1:order_max
-    z1=sqrt(2)*besselj(nn,rootBessel(nn+1,mm)*r)/...
-        besselj(nn+1,rootBessel(nn+1,mm))*...
-        cos(nn*theta)/sqrt(pi)/sqrt(1+(nn==0));
-    % 先是r,后是theta
-    shape_m{mm}=z1;
+% 计算膜的本征函数
+shape_m=cell(order_max,order_max);
+for nn=0:order_max
+    for mm=1:order_max
+        z1=sqrt(2)*besselj(nn,rootBessel(nn+1,mm)*r)/...
+            besselj(nn+1,rootBessel(nn+1,mm))*...
+            cos(nn*theta)/sqrt(pi)/sqrt(1+(nn==0));
+        % 先是r,后是theta
+        shape_m{nn+1,mm}=z1;
+    end
 end
 shape=zeros(r_num,theta_num);
 for nn=0:order_max
@@ -85,18 +91,6 @@ end
 %膜的初态按照腔的本征态展开
 % surfShape(shape,r,theta);% 取消注释看和初态的差别
 %%
-% for nn=0:order_max
-%     mat_tmp=reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
-%     for ii=1:order_max
-%         [~,idx]=max(abs(mat_tmp(:,ii)));
-%         mat_tmp(:,ii)=-mat_tmp(:,ii)*sign(mat_tmp(idx,ii));
-%     end
-%     [i, j] = linear_sum_assignment(mat_tmp');
-%     % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
-%     mat_tmp=-mat_tmp(:,i);
-%     transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
-% end
-%%
 % 角标应为n m k
 w_cn=zeros(size(w_cm));
 for nn=0:order_max
@@ -104,18 +98,19 @@ for nn=0:order_max
     w_cn(nn+1,:)=w_cm(nn+1,1:order_max)*reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
 end
 %%
-% ii=1;
-% mkdir('./pic')
+% 计算耦合体系
 z_1=[];
 figure(1)
+z0=0.5;
+
 for t=0:0.0005:0.1
     shape=zeros(r_num,theta_num);
     for nn=0:order_max
         for mm=1:order_max
-            shape=shape+shape_c{nn+1,mm}*w_cn(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t);
+            shape=shape+shape_c{nn+1,mm}*w_cn(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t)*sin((k-1/2)*pi*z0);
         end
     end
-    surfShape(shape,r,theta)
+    surfShape(shape,r,theta);
     pause(0.01)
     z_tmp=shape(end/2,end/2);
     z_1=[z_1 z_tmp];

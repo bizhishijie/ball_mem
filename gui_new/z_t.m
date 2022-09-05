@@ -68,13 +68,15 @@ for nn=0:order_max
         w_cm(nn+1,mm)=sum(sum(z0.*z1.*ds));
     end
 end
-shape_m=cell(1,order_max);
-for mm=1:order_max
-    z1=sqrt(2)*besselj(nn,rootBessel(nn+1,mm)*r)/...
-        besselj(nn+1,rootBessel(nn+1,mm))*...
-        cos(nn*theta)/sqrt(pi)/sqrt(1+(nn==0));
-    % 先是r,后是theta
-    shape_m{mm}=z1;
+shape_m=cell(order_max,order_max);
+for nn=0:order_max
+    for mm=1:order_max
+        z1=sqrt(2)*besselj(nn,rootBessel(nn+1,mm)*r)/...
+            besselj(nn+1,rootBessel(nn+1,mm))*...
+            cos(nn*theta)/sqrt(pi)/sqrt(1+(nn==0));
+        % 先是r,后是theta
+        shape_m{nn+1,mm}=z1;
+    end
 end
 shape=zeros(r_num,theta_num);
 for nn=0:order_max
@@ -108,14 +110,16 @@ end
 % mkdir('./pic')
 z_1=[];
 figure(1)
+z0=0.5;
+k=1;
 for t=0:0.0005:0.1
     shape=zeros(r_num,theta_num);
     for nn=0:order_max
         for mm=1:order_max
-            shape=shape+shape_c{nn+1,mm}*w_cn(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t);
+            shape=shape+shape_c{nn+1,mm}*w_cn(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t)*sin((k-1/2)*pi*z0);
         end
     end
-    surfShapee(shape,r,theta)
+    surfShape(shape,r,theta);
     pause(0.01)
     z_tmp=shape(end/2,end/2);
     z_1=[z_1 z_tmp];
@@ -134,7 +138,7 @@ for t=0:0.0005:0.1
             shape=shape+shape_m{nn+1,mm}*w_cn(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t);
         end
     end
-    surfShape(shape,r,theta)
+    surfShapee(shape,r,theta)
     pause(0.01)
     z_tmp=shape(end/2,end/2);
     z_1=[z_1 z_tmp];
