@@ -11,28 +11,56 @@
 
 % cs_ca=cs/ca;L_a=L/a;sigma_a_rho=sigma/a/rho_air;
 
-L_a=5;
-sigma_a_rho=3.3;
-cs_ca=0.6;
-a=1;
-ca=345;cs=cs_ca*ca;
-
 load('rootBessel.mat')
 load('rootBesselDiff.mat')
+load('OmegaRe.mat')
 
-parfor n=0:10
+a=0.047; %半径
+L = 0.1;% 鼓的深度
+gamma = 1.4; % 空气绝热系数
+T=19; % 张力19.9
+rho = 1.184;% 空气密度
+ca = 345;% 空气中声速
+sigma = 0.120;% 气球面密度
+pa = 1e5;% 大气压强
+cs = sqrt(T/sigma);% 橡胶中波的传播速度
+cs_ca=cs/ca;L_a=L/a;sigma_a_rho=sigma/a/rho;
+
+for n=0:20
     disp(n)
-    OmegaResonance(n,10, cs_ca,L_a, sigma_a_rho,rootBessel,rootBesselDiff);
+    OmegaResonanceNew(n,20, cs_ca,L_a, sigma_a_rho,rootBessel,rootBesselDiff);
 end
-OmegaReLoader
-load('OmegaRe.mat');
 
-rootBesselDiff=rootBesselDiff(1,:);
+fileList=dir('./OmegaRe/*.mat');
+order_max=20;% 需要修改%%%%%%%%%%%%%%%
+Omega=zeros(length(fileList),order_max);
+for ni =1:length(fileList)
+    load(strcat(fileList(ni).folder,'/', fileList(ni).name));
+    while length(OmegaRe)<order_max
+        OmegaRe=[OmegaRe nan];
+    end 
+    Omega(ni,:)=OmegaRe(1:order_max);
+end
+save('OmegaRe.mat',"Omega")
+
+fileList=dir('./Trans/*.mat');
+
+transMat=zeros(length(fileList),order_max,order_max);
+for ni =1:length(fileList)
+    load(strcat(fileList(ni).folder,'/', fileList(ni).name));
+    transMat(ni,:,:)=trans(1:order_max,1:order_max);
+    % 报错就增大Omega_loop
+%     det(trans(ni));% 这个数字很接近0，计算应该是对的
+end
+save('transMat.mat',"transMat")
+
+n=1;%%%%%%%%%%%%%% 请改这个
+% rootBesselDiff=rootBesselDiff(n,:);
 % rootBessel=rootBessel(1,:);
-Omega=Omega(1,:);
-f_cav_close=sqrt(rootBesselDiff.^2+pi^2)/L_a;
-f_cav_open=sqrt(rootBesselDiff.^2+(pi/2)^2)/L_a;
-f_mem=rootBessel*cs_ca;
+Omega=Omega(n,:);
+f_cav_close=sqrt(rootBesselDiff(n,:).^2+pi^2/L_a^2);
+f_cav_open=sqrt(rootBesselDiff(n,:).^2+(pi/2)^2/L_a^2);
+f_mem=rootBessel(n,:)*cs_ca;
 f_cou=Omega;
 
 f_cav_close=sort(f_cav_close(:));

@@ -90,11 +90,11 @@ else%  ii从1开始编号
 end
 
 % 取消注释以作图
-% figure(1);clf;hold on
-% plot(Omega_loop(det_loop>=0),det_loop(det_loop>=0),'.r')
-% plot(Omega_loop(det_loop<0),-det_loop(det_loop<0),'.b')
-% set(gca,'yscale','log')
-% drawnow
+figure(1);clf;hold on
+plot(Omega_loop(det_loop>=0),det_loop(det_loop>=0),'.r')
+plot(Omega_loop(det_loop<0),-det_loop(det_loop<0),'.b')
+set(gca,'yscale','log')
+drawnow
 
 [~,OmegaRe1]=findpeaks(-abs(det_loop),Omega_loop);
 

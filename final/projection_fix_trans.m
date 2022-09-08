@@ -15,8 +15,8 @@ pa = 1e5;% 大气压强
 cs=20;
 cs_ca=cs/ca;L_a=L/a;sigma_a_rho=sigma/a/rho;
 %%
-order_max=10;% 需要修改
-a0=0; %敲击位置，(theta=0)
+order_max=20;% 需要修改
+a0=0.5; %敲击位置，(theta=0)
 Omega=Omega(1:order_max+1,1:order_max)/2;% 一致化
 %%
 r_num=100;
@@ -38,6 +38,8 @@ cb=(2*coscbo.*r+sqrt((2*coscbo.*r).^2-4*(r.^2-1^2)))/2;
 z0=h0*cb./(cb+ab);
 z0(isnan(z0))=h0*1/(1+a0);
 % surfShape(z0,r,theta);
+z0=max(max(z0))-z0;
+z0=exp(-z0.^2);
 %%
 % 球冠初始条件
 % z0=real(sqrt(   0.5^2-(r*cos(theta)-0.5).^2-(r*sin(theta)).^2-0.2));
@@ -88,7 +90,7 @@ for nn=0:order_max
     end
     [i, j] = linear_sum_assignment(mat_tmp');% 匈牙利算法
     % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
-    mat_tmp=-mat_tmp(:,i);
+    mat_tmp=-mat_tmp(i,:);
     transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
 end
 %%

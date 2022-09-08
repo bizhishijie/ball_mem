@@ -6,15 +6,15 @@ load('rootBesselDiff.mat');
 a=0.047; %半径
 L = 0.1;% 鼓的深度
 gamma = 1.4; % 空气绝热系数
-T=20; % 张力19.9
+T=19; % 张力19.9
 rho = 1.184;% 空气密度
-ca = 345;% 空气中声速x
+ca = 345;% 空气中声速
 sigma = 0.120;% 气球面密度
 pa = 1e5;% 大气压强
 cs = sqrt(T/sigma);% 橡胶中波的传播速度
 cs_ca=cs/ca;L_a=L/a;sigma_a_rho=sigma/a/rho;
 %%
-order_max=10;% 需要修改
+order_max=20;% 需要修改
 a0=0; %敲击位置，(theta=0)
 Omega=Omega(1:order_max+1,1:order_max)/2;% 一致化
 %%
@@ -36,10 +36,12 @@ coscbo=-cosoba;
 cb=(2*coscbo.*r+sqrt((2*coscbo.*r).^2-4*(r.^2-1^2)))/2;
 z0=h0*cb./(cb+ab);
 z0(isnan(z0))=h0*1/(1+a0);
+z0=max(max(z0))-z0;
+z0=exp(-z0.^2);
 % surfShape(z0,r,theta);
 %%
 % 球冠初始条件
-% z0=real(sqrt(   0.5^2-(r*cos(theta)-0.5).^2-(r*sin(theta)).^2-0.2));
+% z0=real(sqrt(0.5^2-(r*cos(theta)-0.5).^2-(r*sin(theta)).^2-0.2));
 % z0(z0<0)=0;
 % surfShape(z0,r,theta);
 %%
@@ -96,7 +98,6 @@ for nn=0:order_max
     w_cn(nn+1,:)=w_cm(nn+1,1:order_max)*reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
 end
 %%
-
 fn=10000; % 横轴划分的个数
 omega_limit=10;
 x=linspace(0,omega_limit*ca/a/2/pi,fn);
