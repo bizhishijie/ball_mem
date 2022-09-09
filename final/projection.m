@@ -15,7 +15,7 @@ cs = sqrt(T/sigma);% 橡胶中波的传播速度
 cs_ca=cs/ca;L_a=L/a;sigma_a_rho=sigma/a/rho;
 %%
 order_max=20;% 需要修改
-a0=0; %敲击位置，(theta=0)
+a0=0.5; %敲击位置，(theta=0)
 Omega=Omega(1:order_max+1,1:order_max)/2;% 一致化
 %%
 r_num=100;
@@ -38,6 +38,7 @@ z0=h0*cb./(cb+ab);
 z0(isnan(z0))=h0*1/(1+a0);
 z0=max(max(z0))-z0;
 z0=exp(-z0.^2);
+z0=z0-min(min(z0));
 % surfShape(z0,r,theta);
 %%
 % 球冠初始条件
@@ -46,10 +47,10 @@ z0=exp(-z0.^2);
 % surfShape(z0,r,theta);
 %%
 w_nm= zeros(size(Omega));% 膜在膜的本征态上的展开系数的矩阵
-shape_m=cell(order_max+1,order_max);% 记录膜在腔的本征态下的形状的cell
+shape_c=cell(order_max+1,order_max);% 记录膜在腔的本征态下的形状的cell
 % r1=r-a/2/r_num;r2=r+a/2/r_num;
 % ds=pi*(r2.^2-r1.^2)/theta_num;
-ds=pi*2*r/r_num/theta_num;% 和上面两行等价
+ds=pi*2*(r+a/r_num)/r_num/theta_num;% 和上面两行等价
 ds=repmat(ds,1,theta_num);
 w_cm=zeros(order_max+1,order_max);
 for nn=0:order_max
@@ -66,30 +67,30 @@ for nn=0:order_max
                 cos(nn*theta)/sqrt(pi);
         end
         % 先是r,后是theta
-        shape_m{nn+1,mm}=z1;
+        shape_c{nn+1,mm}=z1;
         w_cm(nn+1,mm)=sum(sum(z0.*z1.*ds));
     end
 end
 shape=zeros(r_num,theta_num);
 for nn=0:order_max
     for mm=1:order_max
-        shape=shape+shape_m{nn+1,mm}*w_cm(nn+1,mm);
+        shape=shape+shape_c{nn+1,mm}*w_cm(nn+1,mm);
     end
 end
 %膜的初态按照腔的本征态展开
 % surfShape(shape,r,theta);% 取消注释看和初态的差别
 %%
-% for nn=0:order_max
-%     mat_tmp=reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
-%     for ii=1:order_max
-%         [~,idx]=max(abs(mat_tmp(:,ii)));
-%         mat_tmp(:,ii)=-mat_tmp(:,ii)*sign(mat_tmp(idx,ii));
-%     end
-%     [i, j] = linear_sum_assignment(mat_tmp');
-%     % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
-%     mat_tmp=-mat_tmp(:,i);
-%     transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
-% end
+for nn=0:order_max
+    mat_tmp=reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
+    for ii=1:order_max
+        [~,idx]=max(abs(mat_tmp(:,ii)));
+        mat_tmp(:,ii)=-mat_tmp(:,ii)*sign(mat_tmp(idx,ii));
+    end
+    [i, j] = linear_sum_assignment(mat_tmp');
+    % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
+    mat_tmp=-mat_tmp;
+    transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
+end
 %%
 % 角标应为n m k
 w_cn=zeros(size(w_cm));
@@ -123,7 +124,7 @@ xlim([0 2e3])
 % end
 % y(y>1)=1;
 % plot(x,y(1:fn))% 需要检查y的长度再作图
-xlim([0 2e3])
+xlim([0 800])
 %%
 % ii=1;
 % mkdir('./pic')

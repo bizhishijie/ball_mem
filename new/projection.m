@@ -41,6 +41,7 @@ for nn=0:order_max
     end
 end
 factor_mem(factor_mem<1e-5)=0;% 振幅太小的不必计算，这行尽量不要删去，数字太小的话计算有误差
+
 % factor_mem(nn,mm)表示膜在膜的本征态上的展开系数
 %%
 load("trans.mat"); % load变换矩阵
