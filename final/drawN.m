@@ -31,7 +31,7 @@ for n=n0
     for m=1:4
         cnt=0;
         mkdir(sprintf('./couple/fig/%d.%d/',n,m));
-        omega_tmp=omega(n+1,m);     
+        omega_tmp=omega(n+1,m);
         for t=linspace(0,2*pi/omega_tmp,100)
             clf
             hold on
@@ -40,7 +40,7 @@ for n=n0
             s=surfShape(shape_m{m}*cos(omega_tmp*t),r,theta);
             s.EdgeColor="none";
             l = light;
-            l.Color = [1 1 1];z
+            l.Color = [1 1 1];
             view([5,-3,6])
             colormap autumn
             xlabel('x');ylabel('y');zlabel('z');
@@ -49,7 +49,7 @@ for n=n0
             axis off
             drawnow
             %         pause(1)
-            saveas(gcf,sprintf("./couple/fig/%d.%d/%d.bmp",n,m,cnt))
+            %             saveas(gcf,sprintf("./couple/fig/%d.%d/%d.bmp",n,m,cnt))
         end
     end
 end

@@ -84,7 +84,6 @@ else%  ii从1开始编号
             end
         end
         mat_temp=K*A;
-        %         mat_temp(isnan(mat_temp))=0;
         det_loop(i_loop)=det(eye(order_max)+mat_temp);
     end
 end
@@ -153,20 +152,13 @@ for io =1: order_max
         end
     end
     mat_temp=A*K;
-    %     mat_temp(isnan(mat_temp))=0;
     mat_temp=eye(order_max)+mat_temp;
-    %     disp(det(mat_temp))
     mat_svd_temp=sort(svd(mat_temp));
     transMat_temp=null(mat_temp,mat_svd_temp(1)+order_max*eps);
-    %     svdMat(io)=(mat_svd_temp(2)-mat_svd_temp(1))/mat_svd_temp(1);
-    %     if size(transMat_temp,2)~=1
-    %         warning('wrong')
-    %     end
     trans(io,:)=transMat_temp';
     %      计算并保存变换矩阵
 end
 trans=trans';% 便于projection中直接乘
 save(sprintf('OmegaRe/%d.mat',n),'OmegaRe');
 save(sprintf('Trans/%d.mat',n),'trans');
-% save(sprintf('svd/%d.mat',n),'svdMat');
 end
