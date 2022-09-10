@@ -15,7 +15,7 @@ cs = sqrt(T/sigma);% 橡胶中波的传播速度
 cs_ca=cs/ca;L_a=L/a;sigma_a_rho=sigma/a/rho;
 %%
 order_max=20;% 需要修改
-a0=0.5; %敲击位置，(theta=0)
+a0=1; %敲击位置，(theta=0)
 Omega=Omega(1:order_max+1,1:order_max)/2;% 一致化
 %%
 r_num=100;

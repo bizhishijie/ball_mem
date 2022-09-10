@@ -15,7 +15,7 @@ load('rootBesselDiff.mat')
 %%
 % L_a=2;sigma_a_rho=3.3;cs_ca=0.653185;
 %%
-for n=0:20
+parfor n=0:20
     disp(n)
     OmegaResonanceNew(n,20, cs_ca,L_a, sigma_a_rho,rootBessel,rootBesselDiff);
 end
