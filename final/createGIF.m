@@ -1,6 +1,6 @@
 fileList=dir('./pic/*.jpg');
 for i = 1:length(fileList)-1
-    str = ['./pic/' num2str(i/1000) '.jpg'];
+    str = ['./pic/' num2str(i) '.jpg'];
     disp(str)
     A = imread(str);
     [I, map] = rgb2ind(A, 256);

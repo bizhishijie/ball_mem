@@ -13,7 +13,7 @@ pa = 1e5;% 大气压强
 cs = sqrt(T/sigma);% 橡胶中波的传播速度
 cs_ca=cs/ca;L_a=L/a;sigma_a_rho=sigma/a/rho;
 %%
-order_max=50;% 需要修改
+order_max=20;% 需要修改
 a0=0.5; %敲击位置，(theta=0)
 %%
 r_num=100;
@@ -34,7 +34,10 @@ coscbo=-cosoba;
 cb=(2*coscbo.*r+sqrt((2*coscbo.*r).^2-4*(r.^2-1^2)))/2;
 z0=h0*cb./(cb+ab);
 z0(isnan(z0))=h0*1/(1+a0);
-%   
+z0=max(max(z0))-z0;
+z0=exp(-z0.^2);
+z0=z0-min(min(z0));
+%
 %%
 % 球冠初始条件
 % rb=0.1;% 球的半径
@@ -69,7 +72,7 @@ for nn=0:order_max
     end
 end
 % surfShape(shape,r,theta);
-%%
+% %%
 Omega=rootBessel(1:(order_max+1),1:order_max);
 
 fn=10000; % 横轴划分的个数
@@ -78,13 +81,14 @@ x=linspace(0,omega_limit*cs/a/2/pi,fn);
 y=zeros(1,fn);
 for nn=0:order_max
     for mm=1:order_max
-        y=y+(w_cm(nn+1,mm)*Omega(nn+1,mm)*cs/a/2/pi)^2./(1+(x-Omega(nn+1,mm)*cs/a/2/pi).^2/10);
+        %         y=y+(w_cm(nn+1,mm)*Omega(nn+1,mm)*cs/a/2/pi)^2./(1+(x-Omega(nn+1,mm)*cs/a/2/pi).^2/10);
+        shape=shape+shape_m{nn+1,mm}*w_cm(nn+1,mm);
     end
 end
-y=y/max(y);
-hold on
-plot(x,y(1:fn))% 需要检查y的长度再作图
-xlim([0 2e3])
+% y=y/max(y);
+% hold on
+% plot(x,y(1:fn))% 需要检查y的长度再作图
+% xlim([0 2e3])
 
 % fn=10000; % 横轴划分的个数
 % omega_limit=50;
@@ -98,3 +102,27 @@ xlim([0 2e3])
 % y(y>1)=1;
 % plot(x,y(1:fn))% 需要检查y的长度再作图
 % xlim([0 2e3])
+ii=0;
+z_max=max(max(abs(shape)));
+for t=0:0.00001:0.00001*200
+    shape=zeros(r_num,theta_num);
+    for nn=0:order_max
+        for mm=1:order_max
+            shape=shape+shape_m{nn+1,mm}*w_cm(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t);
+        end
+    end
+    ii=ii+1;
+    f=surfShape(shape,r,theta);
+%     colormap bone
+    f.EdgeColor='none';
+    axis([-1,1,-1,1,-z_max,z_max])
+    l=light;
+    axis off
+    view(-30,70);  % 设置视点位置
+    %     title(t)
+    material([0.1,0.8,0.4])
+    drawnow
+    saveas(gcf,['./pic/' num2str(ii) '.jpg'])
+    disp(t)
+    pause(0.1)
+end

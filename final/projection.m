@@ -80,17 +80,17 @@ end
 %膜的初态按照腔的本征态展开
 % surfShape(shape,r,theta);% 取消注释看和初态的差别
 %%
-for nn=0:order_max
-    mat_tmp=reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
-    for ii=1:order_max
-        [~,idx]=max(abs(mat_tmp(:,ii)));
-        mat_tmp(:,ii)=-mat_tmp(:,ii)*sign(mat_tmp(idx,ii));
-    end
-    [i, j] = linear_sum_assignment(mat_tmp');
-    % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
-    mat_tmp=-mat_tmp;
-    transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
-end
+% for nn=0:order_max
+%     mat_tmp=reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
+%     for ii=1:order_max
+%         [~,idx]=max(abs(mat_tmp(:,ii)));
+%         mat_tmp(:,ii)=-mat_tmp(:,ii)*sign(mat_tmp(idx,ii));
+%     end
+%     [i, j] = linear_sum_assignment(mat_tmp');
+%     % 行i和列j对应，由于多了一个转置，实际上是列i和行j对应
+%     mat_tmp=-mat_tmp;
+%     transMat(nn+1,1:order_max,1:order_max)=mat_tmp;
+% end
 %%
 % 角标应为n m k
 w_cn=zeros(size(w_cm));
@@ -99,19 +99,19 @@ for nn=0:order_max
     w_cn(nn+1,:)=w_cm(nn+1,1:order_max)*reshape(transMat(nn+1,1:order_max,1:order_max),order_max,order_max);
 end
 %%
-fn=10000; % 横轴划分的个数
-omega_limit=10;
-x=linspace(0,omega_limit*ca/a/2/pi,fn);
-y=zeros(1,fn);
-for nn=0:order_max
-    for mm=1:order_max
-        y=y+abs(w_cn(nn+1,mm)*Omega(nn+1,mm))./(1+(x-Omega(nn+1,mm)*ca/a/2/pi).^2/10);
-    end
-end
-y=y/max(y);
-hold on
-plot(x,y(1:fn))% 需要检查y的长度再作图
-xlim([0 2e3])
+% fn=10000; % 横轴划分的个数
+% omega_limit=10;
+% x=linspace(0,omega_limit*ca/a/2/pi,fn);
+% y=zeros(1,fn);
+% for nn=0:order_max
+%     for mm=1:order_max
+%         y=y+abs(w_cn(nn+1,mm)*Omega(nn+1,mm))./(1+(x-Omega(nn+1,mm)*ca/a/2/pi).^2/10);
+%     end
+% end
+% y=y/max(y);
+% hold on
+% plot(x,y(1:fn))% 需要检查y的长度再作图
+% xlim([0 2e3])
 
 % fn=10000; % 横轴划分的个数
 % omega_limit=20;
@@ -124,24 +124,24 @@ xlim([0 2e3])
 % end
 % y(y>1)=1;
 % plot(x,y(1:fn))% 需要检查y的长度再作图
-xlim([0 800])
+% xlim([0 800])
 %%
-% ii=1;
-% mkdir('./pic')
-% for t=0:0.0001:0.02
-%     shape=zeros(r_num,theta_num);
-%     for nn=0:order_max
-%         for mm=1:order_max
-%             shape=shape+shape_m{nn+1,mm}*w_cn(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t);
-%         end
-%     end
-%     surfShape(shape,r,theta)
-%     view(-30,70);  % 设置视点位置
-%     %     axis([-a,a,-a,a,-0.003,0]); % 显示不全调节最后两个参数
-%     title(t)
-%     drawnow
-%     %     saveas(gcf,['./pic/' num2str(ii) '.jpg'])
-%     disp(t)
-%     ii=ii+1;
-%     pause(0.1)
-% end
+ii=1;
+mkdir('./pic')
+for t=0:0.0001:0.02
+    shape=zeros(r_num,theta_num);
+    for nn=0:order_max
+        for mm=1:order_max
+            shape=shape+shape_c{nn+1,mm}*w_cn(nn+1,mm)*cos(Omega(nn+1,mm)*ca/a*t);
+        end
+    end
+    surfShape(shape,r,theta);
+    view(-30,70);  % 设置视点位置
+    %     axis([-a,a,-a,a,-0.003,0]); % 显示不全调节最后两个参数
+    title(t)
+    drawnow
+    %     saveas(gcf,['./pic/' num2str(ii) '.jpg'])
+    disp(t)
+    ii=ii+1;
+    pause(0.1)
+end
