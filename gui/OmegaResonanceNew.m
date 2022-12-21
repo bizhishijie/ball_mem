@@ -57,7 +57,7 @@ else%  ii从1开始编号
         end
     end
 
-    Omega_loop=0:0.0005:10;% as the paper
+    Omega_loop=0:0.0005:5;% as the paper
     det_loop=zeros(1,length(Omega_loop));
 
     for i_loop=1:length(Omega_loop)
