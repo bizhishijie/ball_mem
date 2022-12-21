@@ -1,26 +1,4 @@
 function [i, j] = linear_sum_assignment(cost_matrix)
-% function [i, j] = linear_sum_assignment(cost_matrix)
-%
-% Hungarian algorithm (Kuhn-Munkres) for solving the linear sum assignment
-% problem.
-%
-% Input: 
-% COST_MATRIX: n-by-m matrix with costs. Rectangular cost matrices 
-%              are supported. 
-% 
-% Output: 
-% I, J: matching.
-% Row I(k) is matched to column J(k), 
-%     k = 1, 2, 3, ... min(size(COST_MATRIX)). 
-%
-
-% Based on python implementation by Brian Clapper and Gael Varoquaux.
-% Adapted to matlab by Ondrej Drbohlav.
-%
-% Copyright (c) 2008 Brian M. Clapper <bmc@clapper.org>, Gael Varoquaux
-% Copyright (c) 2016 Ondrej Drbohlav <drbohlav@fel.cvut.cz>
-% License: 3-clause BSD
-
 True = 1;
 False = 0;
 
@@ -71,25 +49,15 @@ return
 function state = clear_covers(state)
 True = 1;
 False = 0;
-% """Clear all covered matrix cells"""
 state.row_uncovered(:) = True; 
 state.col_uncovered(:) = True;
-
-%# Individual steps of the algorithm follow, as a state machine: they return
-%# the next step to be taken (function to be called), if any.
 
 function [fnhandle, state] = step1(state)
 True = 1;
 False = 0; 
-%"""Steps 1 and 2 in the Wikipedia page."""
-%
-%    # Step 1: For each row of the matrix, find the smallest element and
-%    # subtract it from every element in its row.
 state.C = state.C - ...
           repmat(min(state.C,[],2), [1, size(state.C, 2)]); 
-%    # Step 2: Find a zero (Z) in the resulting matrix. If there is no
-%    # starred zero in its row or column, star Z. Repeat for each element
-%    # in the matrix.
+
 [i_, j_] = find(state.C == 0);
 
 for k = 1:length(i_)
@@ -108,11 +76,6 @@ fnhandle = @step3;
 function [fnhandle, state] = step3(state)
 True = 1;
 False = 0;
-%    """
-%    Cover each column containing a starred zero. If n columns are covered,
-%    the starred zeros describe a complete set of unique assignments.
-%    In this case, Go to DONE, otherwise, Go to Step 4.
-%    """
 marked = (state.marked == 1);
 state.col_uncovered( any(marked) ) = False; 
 
@@ -125,15 +88,6 @@ end
 function [fnhandle, state] = step4(state)
 True = 1;
 False = 0;
-%    """
-%    Find a noncovered zero and prime it. If there is no starred zero
-%    in the row containing this primed zero, Go to Step 5. Otherwise,
-%    cover this row and uncover the column containing the starred
-%    zero. Continue in this manner until there are no uncovered zeros
-%    left. Save the smallest uncovered value and Go to Step 6.
-%    """
-%    # We convert to int as numpy operations are faster on int
-
 [n, m] = size(state.C); 
 
 % covered_C: bool
@@ -173,16 +127,6 @@ end
 function [fnhandle, state] = step5(state)
 True = 1;
 False = 0;
-%    """
-%    Construct a series of alternating primed and starred zeros as follows.
-%    Let Z0 represent the uncovered primed zero found in Step 4.
-%    Let Z1 denote the starred zero in the column of Z0 (if any).
-%    Let Z2 denote the primed zero in the row of Z1 (there will always be one%).
-%    Continue until the series terminates at a primed zero that has no starred
-%    zero in its column. Unstar each starred zero of the series, star each
-%    primed zero of the series, erase all primes and uncover every line in th%e
-%    matrix. Return to Step 3
-%    """
 el0 = 1;
 el1 = 2;
 [n, m] = size(state.C); 
@@ -230,12 +174,6 @@ fnhandle = @step3; return
 
 
 function [fnhandle, state] = step6(state)
-%    """
-%    Add the value found in Step 4 to every element of each covered row,
-%    and subtract it from every element of each uncovered column.
-%    Return to Step 4 without altering any stars, primes, or covered lines.
-%    """
-%    # the smallest uncovered value in the matrix
 if any(state.row_uncovered) & any(state.col_uncovered)
     minval = min(min(state.C(state.row_uncovered, ...
                              state.col_uncovered))); 
